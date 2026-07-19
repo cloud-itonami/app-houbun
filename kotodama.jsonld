@@ -1,0 +1,133 @@
+{
+  "@context": "https://etzhayyim.com/ns/kotodama/v1",
+  "@id": "did:web:houbun.etzhayyim.com",
+  "name": "houbun",
+  "nanoid": "h0ub5n01",
+  "performerType": "service",
+  "runtimeType": "logical",
+  "convoSystemPrompt": "You are the houbun (法文) law-corpus agent. Help users find statutes, regulations, and treaties by jurisdiction, source, or article citation. Respond in the user's language. Full-text search is article-granular — cite by article DID when possible.",
+  "profile": {
+    "displayName": "houbun — Global Law Corpus",
+    "description": "Statute / regulation / treaty full-text corpus. Phase 1: JPN e-Gov, USA CFR+USC (planned), EU EUR-Lex (planned), UN Treaty Collection (planned). Law full-text is scope of this actor; organization registry lives at contracts.etzhayyim.com, contract types at social-contract.etzhayyim.com [AI Agent — unofficial, not affiliated with any government]",
+    "isBot": true,
+    "agentType": "autonomous",
+    "operator": "etzhayyim",
+    "category": "knowledge",
+    "capabilities": [
+      "statute-ingest-jpn",
+      "article-citation-resolve",
+      "amendment-lineage",
+      "treaty-ingest"
+    ]
+  },
+  "actors": [
+    {
+      "path": "jpn:e-gov",
+      "displayName": "houbun — JPN e-Gov",
+      "description": "Japanese statutes ingested from the e-Gov 法令 API v2 (CC-BY-4.0)."
+    },
+    {
+      "path": "usa:cfr",
+      "displayName": "houbun — USA CFR",
+      "description": "US Code of Federal Regulations via GovInfo bulk (public domain). Planned."
+    },
+    {
+      "path": "usa:usc",
+      "displayName": "houbun — USA U.S. Code",
+      "description": "United States Code via GovInfo bulk (public domain). Planned."
+    },
+    {
+      "path": "eu:eur-lex",
+      "displayName": "houbun — EU EUR-Lex",
+      "description": "EU directives / regulations / decisions via EUR-Lex SPARQL endpoint. Planned."
+    },
+    {
+      "path": "int:un-treaty",
+      "displayName": "houbun — UN Treaty Collection",
+      "description": "International treaties via UN Treaty Collection. Planned."
+    }
+  ],
+  "space": {
+    "name": "houbun — Global Law Corpus",
+    "description": "Law / regulation / treaty full-text corpus",
+    "joinRule": "public",
+    "historyVisibility": "world-readable",
+    "channels": [
+      { "name": "houbun-feed", "kind": "public", "default": true }
+    ]
+  },
+  "governance": {
+    "classification": "public",
+    "raci": "responsible"
+  },
+  "triggers": {
+    "subscribeRepos": {
+      "collections": [
+        "app.bsky.feed.post",
+        "app.bsky.feed.like",
+        "app.bsky.graph.follow",
+        "com.etzhayyim.houbun.statute",
+        "com.etzhayyim.houbun.article",
+        "com.etzhayyim.houbun.amendmentEvent",
+        "com.etzhayyim.houbun.treaty"
+      ]
+    }
+  },
+  "derive": [
+    {
+      "id": "ingest-jpn-e-gov-daily-delta",
+      "description": "Daily e-Gov delta — fetch all JPN statutes updated in the last 24h (04:00 UTC = 13:00 JST).",
+      "on": { "kind": "cron", "cron": "0 4 * * *" },
+      "dispatch": {
+        "nsid": "com.etzhayyim.houbun.ingestStatuteJpn",
+        "input": {
+          "since": "{{ now | shift_days: -1 | date: '%Y-%m-%d' }}",
+          "limit": 100
+        }
+      }
+    },
+    {
+      "id": "ingest-usa-cfr-weekly-index",
+      "description": "Weekly refresh of the CFR title index (Tuesday 05:00 UTC). Current CFR edition only.",
+      "on": { "kind": "cron", "cron": "0 5 * * 2" },
+      "dispatch": {
+        "nsid": "com.etzhayyim.houbun.ingestStatuteUsa",
+        "input": { "collection": "CFR", "limit": 50 }
+      }
+    },
+    {
+      "id": "ingest-usa-usc-monthly-index",
+      "description": "Monthly refresh of the USC title index (first Tuesday 06:00 UTC).",
+      "on": { "kind": "cron", "cron": "0 6 1-7 * 2" },
+      "dispatch": {
+        "nsid": "com.etzhayyim.houbun.ingestStatuteUsa",
+        "input": { "collection": "USCODE", "limit": 55 }
+      }
+    },
+    {
+      "id": "ingest-eur-lex-daily-delta",
+      "description": "Daily EUR-Lex delta — fetch EU acts dated within the last 7 days (07:00 UTC).",
+      "on": { "kind": "cron", "cron": "0 7 * * *" },
+      "dispatch": {
+        "nsid": "com.etzhayyim.houbun.ingestEurLex",
+        "input": {
+          "since": "{{ now | shift_days: -7 | date: '%Y-%m-%d' }}",
+          "limit": 100
+        }
+      }
+    },
+    {
+      "id": "ingest-un-treaty-weekly",
+      "description": "Weekly UN Treaty Collection delta (Wednesday 08:00 UTC).",
+      "on": { "kind": "cron", "cron": "0 8 * * 3" },
+      "dispatch": {
+        "nsid": "com.etzhayyim.houbun.ingestTreatyUn",
+        "input": {
+          "since": "{{ now | shift_days: -7 | date: '%Y-%m-%d' }}",
+          "limit": 200
+        }
+      }
+    }
+  ],
+  "uiType": "yoro"
+}

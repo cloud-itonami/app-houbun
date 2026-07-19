@@ -1,0 +1,36 @@
+{
+  "@context": "https://etzhayyim.com/schema/",
+  "@type": "etzhayyim:Project",
+  "@id": "etzhayyim-project-houbun",
+  "name": "Global Law Corpus (houbun)",
+  "description": "全世界の法令・規則・国際条約の全文を ingest して条文単位 (article) の content-addressed DID として管理。契約類型は social-contract.etzhayyim.com、法人 registry は legal-entity.etzhayyim.com、法務サービスは bengoshi/lawfirm/legal-aid/sashiosae を参照。",
+  "category": "knowledge",
+  "capabilities": [
+    "CV-1: Statute / regulation corpus",
+    "CV-2: Article-level citation resolution (content-addressed DID)",
+    "CV-3: Amendment lineage tracking",
+    "CV-4: International treaty corpus"
+  ],
+  "performers": [
+    {
+      "@type": "etzhayyim:AIActor",
+      "@id": "houbun-ingest",
+      "activity": "e-Gov / GovInfo / EUR-Lex / UN Treaty crawl and normalization (shared UDF pool, Vultr VKE)"
+    }
+  ],
+  "dataSources": [
+    "e-Gov 法令 API v2 (JPN, CC-BY-4.0) — Phase 1",
+    "GovInfo bulkdata CFR + USC (USA, public domain) — Phase 1 planned",
+    "EUR-Lex SPARQL (EU, attribution) — Phase 1 planned",
+    "UN Treaty Collection (INT, polite crawl) — Phase 1 planned"
+  ],
+  "relatedActors": [
+    "contracts.etzhayyim.com",
+    "social-contract.etzhayyim.com",
+    "legal-entity.etzhayyim.com"
+  ],
+  "authoritativeDoc": "90-docs/adr/0052-houbun-actor-topology.md",
+  "version": "0.1.0",
+  "created": "2026-04-22T00:00:00Z",
+  "updated": "2026-04-22T00:00:00Z"
+}
