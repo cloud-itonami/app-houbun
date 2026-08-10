@@ -1,4 +1,4 @@
 {:schema "etzhayyim.repository/v1"
- :name "com-etzhayyim-app-houbun"
+ :name "app-houbun"
  :kind :app
  :canonical-metadata :edn}
