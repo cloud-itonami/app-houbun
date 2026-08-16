@@ -1,0 +1,214 @@
+#!/usr/bin/env nbb
+;; mutate-houbun-surface.cljs — check the checker.
+;;
+;;   nbb scripts/mutate-houbun-surface.cljs <dir>
+;;
+;; verify-houbun-surface.cljs claims to notice when one of houbun's six faces
+;; moves. A check that cannot go red is theatre, so this harness breaks the
+;; tree one edit at a time and demands that the checker notice.
+;;
+;; It is NOT enough to demand exit 1. Breaking a *different* assertion also
+;; exits 1, and a mutation that silently matched nothing would leave the tree
+;; unchanged and could still look like a pass if the checker were already red.
+;; So each mutation declares the exact set of assertion ids it should flip, and
+;; the run fails unless the observed CHANGED set matches that set exactly
+;; (ADR-2608136000: confirm that what broke is what got reported).
+;;
+;; Three floors run alongside the mutations:
+;;   control        unmodified tree exits 0 with an empty CHANGED set
+;;   missing-input  a deleted source exits 2, not 0 and not 1
+;;   no-net         --no-net reports the DNS assertion as skipped, not held
+;;
+;; Exit 0 = the checker discriminated on every case. Exit 1 = it did not.
+
+(require '["fs" :as fs]
+         '["path" :as path]
+         '["os" :as os]
+         '["child_process" :as cp]
+         '[clojure.string :as str]
+         '[clojure.set :as set])
+
+(def argv (vec *command-line-args*))
+(def root (or (first (remove #(str/starts-with? % "--") argv)) "."))
+
+(def checker "scripts/verify-houbun-surface.cljs")
+
+;; Every mutation: [id file find replace expected-changed-ids]
+;; `find` must occur in `file`, or the mutation is a no-op that would prove
+;; nothing — sub! throws in that case rather than reporting a hollow red.
+(def mutations
+  [["worker-nsid-base" "xrpc-adapter/src/index.ts"
+    "\"com.etzhayyim.apps.houbun\"" "\"com.etzhayyim.houbun\""
+    #{"worker-nsid-base" "cron-dispatch-unreachable" "adapter-readme-unreachable"}]
+
+   ["cron-dispatch-namespace" "kotodama.jsonld"
+    "\"nsid\": \"com.etzhayyim.houbun.ingestStatuteJpn\""
+    "\"nsid\": \"com.etzhayyim.apps.houbun.ingestStatuteJpn\""
+    #{"cron-dispatch-namespace" "cron-dispatch-unreachable"}]
+
+   ["adapter-readme-unreachable" "xrpc-adapter/README.md"
+    "com.etzhayyim.houbun." "com.etzhayyim.apps.houbun."
+    #{"adapter-readme-unreachable"}]
+
+   ["hash-call-literals" "kotoba/src/corpus.ts"
+    "      \"1\",\n" "      \"2\",\n"
+    #{"hash-call-literals"}]
+
+   ["hash-drops-statute-identity" "kotoba/src/corpus.ts"
+    "      \"default\",\n" "      input.jurisdiction,\n"
+    #{"hash-call-literals" "hash-drops-statute-identity"}]
+
+   ["hash-drops-amendedat" "kotoba/src/corpus.ts"
+    "      articleId,\n      \"1\",\n      undefined\n"
+    "      articleId,\n      \"1\",\n      input.amendedAt\n"
+    #{"hash-drops-amendedat"}]
+
+   ["fallback-signature-documented" "kotoba/src/types.ts"
+    "  jurisdiction: string,\n  statuteId: string,"
+    "  jur: string,\n  statuteId: string,"
+    #{"fallback-signature-documented"}]
+
+   ["docs-claim-content-addressing" "kotoba/README.md"
+    "**new article DID**" "a new article DID"
+    #{"docs-claim-content-addressing"}]
+
+   ["article-statuteref-synthetic" "kotoba/src/corpus.ts"
+    "statuteRef: `at://${articleId}`," "statuteRef: input.statuteRef,"
+    #{"article-statuteref-synthetic"}]
+
+   ["article-record-drops-fields" "kotoba/src/corpus.ts"
+    "    blake3Hash: hash,\n    createdAt: now,"
+    "    blake3Hash: hash,\n    language: input.language,\n    createdAt: now,"
+    #{"article-record-drops-fields"}]
+
+   ["ingest-passes-dropped-fields" "kotoba/src/ingest.ts"
+    "        section: a.section,\n" ""
+    #{"ingest-passes-dropped-fields"}]
+
+   ["kotoba-readme-self-contradiction" "kotoba/README.md"
+    "4 ingest procs pending" "4 ingest procs complete"
+    #{"kotoba-readme-self-contradiction"}]
+
+   ["claude-md-denies-the-worker" "CLAUDE.md"
+    "**No dedicated Worker**" "Dedicated Worker"
+    #{"claude-md-denies-the-worker"}]
+
+   ["claude-md-smoke-wrong-host" "CLAUDE.md"
+    "atproto.etzhayyim.com/xrpc/" "houbun.etzhayyim.com/xrpc/"
+    #{"claude-md-smoke-wrong-host"}]
+
+   ["un-treaty-proc-name-split" "CLAUDE.md"
+    "ingestUnTreaty" "ingestTreatyUn"
+    #{"un-treaty-proc-name-split"}]
+
+   ["test-shape-has-no-caller" "kotoba/test/houbun.test.ts"
+    "articleId:" "articleNo:"
+    #{"test-shape-has-no-caller"}]])
+
+(defn- mktmp []
+  (let [d (path/join (os/tmpdir) (str "houbun-mut-" (rand-int 1e9)))]
+    (cp/execSync (str "mkdir -p " d)) d))
+
+(defn- copy-tree! [dst]
+  ;; copy the working tree (no .git) so a mutation can never touch the real repo
+  (cp/execSync (str "tar cf - -C " root " --exclude .git --exclude node_modules . | tar xf - -C " dst)))
+
+(defn- run-checker [dir & extra]
+  (let [cmd (str "nbb " (path/join dir checker) " " dir " " (str/join " " extra))
+        res (try {:out (str (cp/execSync (str cmd " 2>&1") #js {:encoding "utf8"})) :code 0}
+                 (catch :default e
+                   {:out (str (or (some-> (.-stdout e) str) "")) :code (or (.-status e) 1)}))]
+    res))
+
+(defn- changed-ids [out]
+  (set (map second (re-seq #"(?m)^CHANGED\s+(\S+)" out))))
+
+(defn- skipped-ids [out]
+  (set (map second (re-seq #"(?m)^SKIPPED\s+(\S+)" out))))
+
+(defn- sub! [dir file find replace]
+  (let [p (path/join dir file)
+        t (str (fs/readFileSync p "utf8"))]
+    (when-not (str/includes? t find)
+      (throw (js/Error. (str "mutation target absent in " file ": " (pr-str find)
+                             " — a mutation that changes nothing proves nothing"))))
+    (fs/writeFileSync p (str/replace t find replace))))
+
+(def results (atom []))
+(defn- pass! [n why] (swap! results conj {:n n :ok true :why why}))
+(defn- fail! [n why] (swap! results conj {:n n :ok false :why why}))
+
+;; ── floor 1: unmodified control ─────────────────────────────────────────────
+(let [d (mktmp)]
+  (copy-tree! d)
+  (let [{:keys [out code]} (run-checker d)
+        ch (changed-ids out)]
+    (if (and (zero? code) (empty? ch))
+      (pass! "control" "unmodified tree: exit 0, no CHANGED")
+      (fail! "control" (str "expected exit 0 + empty CHANGED, got exit " code " CHANGED=" ch)))))
+
+;; ── floor 2: a missing input must exit 2, not 0 and not 1 ───────────────────
+(let [d (mktmp)]
+  (copy-tree! d)
+  (fs/unlinkSync (path/join d "kotoba/src/corpus.ts"))
+  (let [{:keys [out code]} (run-checker d)]
+    (if (and (= code 2) (str/includes? out "UNREADABLE"))
+      (pass! "missing-input" "deleted corpus.ts: exit 2 (not 0, not 1)")
+      (fail! "missing-input" (str "expected exit 2, got exit " code)))))
+
+;; ── floor 3: --no-net skips the DNS assertion rather than counting it held ──
+(let [d (mktmp)]
+  (copy-tree! d)
+  (let [{:keys [out code]} (run-checker d "--no-net")]
+    (if (and (zero? code)
+             (contains? (skipped-ids out) "actor-host-nxdomain")
+             (str/includes? out "skipped=1"))
+      (pass! "no-net" "--no-net: DNS assertion reported skipped, counted apart from held")
+      (fail! "no-net" (str "expected exit 0 with skipped=1, got exit " code)))))
+
+;; ── the mutations ───────────────────────────────────────────────────────────
+(doseq [[id file find replace expected] mutations]
+  (let [d (mktmp)]
+    (copy-tree! d)
+    (try
+      (sub! d file find replace)
+      (let [{:keys [out code]} (run-checker d)
+            ch (changed-ids out)]
+        (cond
+          (not= code 1)
+          (fail! id (str "expected exit 1, got exit " code " (CHANGED=" ch ")"))
+
+          (not= ch expected)
+          (fail! id (str "wrong assertions flipped."
+                         " expected=" (sort expected)
+                         " observed=" (sort ch)
+                         " missing=" (sort (set/difference expected ch))
+                         " extra=" (sort (set/difference ch expected))))
+
+          :else
+          (pass! id (str "flipped exactly " (sort ch)))))
+      (catch :default e
+        (fail! id (str "mutation could not be applied: " (.-message e)))))))
+
+;; ── report ──────────────────────────────────────────────────────────────────
+(let [rs @results
+      ok (filter :ok rs)
+      bad (remove :ok rs)
+      floor (+ (count mutations) 3)]
+  (doseq [{:keys [n ok why]} rs]
+    (println (str (if ok "OK   " "FAIL ") n " — " why)))
+  (println)
+  (println (str "DEMONSTRATIONS\t" (count rs) "\tok=" (count ok) " failed=" (count bad)))
+  (cond
+    (< (count rs) floor)
+    (do (println (str "\nRefusing to report a pass: only " (count rs)
+                      " demonstration(s) ran, floor is " floor "."))
+        (js/process.exit 2))
+    (seq bad)
+    (do (println (str "\n" (count bad) " demonstration(s) failed — the checker does not"
+                      "\ndiscriminate on those cases and must not be trusted there."))
+        (js/process.exit 1))
+    :else
+    (do (println "\nThe checker went red on every mutation, and flipped exactly the")
+        (println "assertions each mutation targeted.")
+        (js/process.exit 0))))
