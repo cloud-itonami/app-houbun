@@ -97,11 +97,11 @@ This is a missing record, not a missing zone.
 
 **Record the state; do not silently pick a winner.**
 
-`scripts/verify-houbun-surface.cljs` asserts the current state of all 18
+`scripts/verify-houbun-surface.cljk` asserts the current state of all 18
 discrepancies. It deliberately encodes no opinion about which face is correct,
 because nothing in the tree settles that. Pinning current state means a fix
 turns the checker **red**, forcing the change to arrive as a recorded decision
-rather than as drift. `scripts/mutate-houbun-surface.cljs` checks the checker:
+rather than as drift. `scripts/mutate-houbun-surface.cljk` checks the checker:
 16 mutations plus 3 floors, each required to flip exactly the assertions it
 targets — exit 1 alone is not accepted as evidence, since breaking an unrelated
 assertion also exits 1.

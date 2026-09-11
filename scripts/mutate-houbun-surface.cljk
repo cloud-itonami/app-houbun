@@ -1,7 +1,7 @@
 #!/usr/bin/env nbb
 ;; mutate-houbun-surface.cljs — check the checker.
 ;;
-;;   nbb scripts/mutate-houbun-surface.cljs <dir>
+;;   nbb scripts/mutate-houbun-surface.cljk <dir>
 ;;
 ;; verify-houbun-surface.cljs claims to notice when one of houbun's six faces
 ;; moves. A check that cannot go red is theatre, so this harness breaks the
@@ -31,7 +31,7 @@
 (def argv (vec *command-line-args*))
 (def root (or (first (remove #(str/starts-with? % "--") argv)) "."))
 
-(def checker "scripts/verify-houbun-surface.cljs")
+(def checker "scripts/verify-houbun-surface.cljk")
 
 ;; Every mutation: [id file find replace expected-changed-ids]
 ;; `find` must occur in `file`, or the mutation is a no-op that would prove
