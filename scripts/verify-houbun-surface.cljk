@@ -1,7 +1,7 @@
-#!/usr/bin/env nbb
+#!/usr/bin/env kbb
 ;; verify-houbun-surface.cljs — pin what this repo's six faces currently say.
 ;;
-;;   nbb scripts/verify-houbun-surface.cljk <dir> [--no-net]
+;;   kbb --backend sci scripts/verify-houbun-surface.cljk <dir> [--no-net]
 ;;
 ;; <dir> MUST be the first argument (the fleet passes it that way, and several
 ;; gates in this workspace have been misdiagnosed because a flag was read as

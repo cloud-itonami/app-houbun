@@ -1,7 +1,7 @@
-#!/usr/bin/env nbb
+#!/usr/bin/env kbb
 ;; mutate-houbun-surface.cljs — check the checker.
 ;;
-;;   nbb scripts/mutate-houbun-surface.cljk <dir>
+;;   kbb --backend sci scripts/mutate-houbun-surface.cljk <dir>
 ;;
 ;; verify-houbun-surface.cljs claims to notice when one of houbun's six faces
 ;; moves. A check that cannot go red is theatre, so this harness breaks the
