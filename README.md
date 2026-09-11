@@ -43,12 +43,12 @@ What this repo *does* now have is a check that keeps the disagreements from
 drifting silently:
 
 ```bash
-nbb scripts/verify-houbun-surface.cljs .
+nbb scripts/verify-houbun-surface.cljk .
 ```
 
 It pins the current state of all 18 discrepancies. It goes **red when someone
 fixes one** — which is the intent: a fix should be a recorded decision, not an
-unnoticed edit. `scripts/mutate-houbun-surface.cljs` checks the checker (19
+unnoticed edit. `scripts/mutate-houbun-surface.cljk` checks the checker (19
 demonstrations; each mutation must flip exactly the assertions it targets).
 
 ## Layout
