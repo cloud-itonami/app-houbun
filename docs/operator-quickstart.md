@@ -14,7 +14,7 @@ Two machines are named because one step does not work everywhere: see
 No install needed. This is the fastest way to see the repo's state.
 
 ```bash
-nbb scripts/verify-houbun-surface.cljk .
+kbb --backend sci scripts/verify-houbun-surface.cljk .
 ```
 
 Expected today — 18 assertions, all held, exit 0:
@@ -29,7 +29,7 @@ Offline (skips the one DNS lookup; a skip is counted apart from a hold, never
 folded into it):
 
 ```bash
-nbb scripts/verify-houbun-surface.cljk . --no-net
+kbb --backend sci scripts/verify-houbun-surface.cljk . --no-net
 ```
 
 ```
@@ -58,7 +58,7 @@ the assertions each mutation targets, since breaking some other assertion also
 exits 1.
 
 ```bash
-nbb scripts/mutate-houbun-surface.cljk .
+kbb --backend sci scripts/mutate-houbun-surface.cljk .
 ```
 
 Takes about three minutes (19 subprocesses). Expected:

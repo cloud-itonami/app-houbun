@@ -43,7 +43,7 @@ What this repo *does* now have is a check that keeps the disagreements from
 drifting silently:
 
 ```bash
-nbb scripts/verify-houbun-surface.cljk .
+kbb --backend sci scripts/verify-houbun-surface.cljk .
 ```
 
 It pins the current state of all 18 discrepancies. It goes **red when someone
