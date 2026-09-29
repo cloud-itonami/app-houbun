@@ -6,7 +6,7 @@
 
 ## Context
 
-This repo describes itself in six places: `CLAUDE.md`, `kotodama.jsonld`,
+This repo describes itself in six places: `AGENTS.md`, `kotodama.jsonld`,
 `PROJECT.jsonld`, `kotoba/README.md`, `xrpc-adapter/README.md`, and the
 TypeScript under `kotoba/src`. They do not agree, and the vitest suite is green
 (10/10), so nothing in the repo notices.
@@ -25,7 +25,7 @@ All measured 2026-08-16 and reproducible via `docs/operator-quickstart.md`.
 ### F1 — the article DID does not depend on the article
 
 `types.ts` declares `blake3Prefix12Fallback(jurisdiction, statuteId, articleNo,
-amendedAt)`, and both `kotoba/README.md` and `CLAUDE.md` document the hash input
+amendedAt)`, and both `kotoba/README.md` and `AGENTS.md` document the hash input
 as `jurisdiction + statuteId + articleNo + amendedAt`. `registerArticle` calls
 it as:
 
@@ -44,7 +44,7 @@ consequences, both fatal to the stated purpose:
 - **Amendment lineage is inert.** Re-registering an article with a new
   `amendedAt` returns `alreadyExists` on the same DID and never stores the new
   text. `kotoba/README.md`'s central claim — "each amendment produces a **new
-  article DID**" — and `CLAUDE.md`'s「改正で新 DID が生える」are both false in
+  article DID**" — and `AGENTS.md`'s「改正で新 DID が生える」are both false in
   code. Since `recordAmendment` links `fromArticleDids` to `toArticleDids`, and
   those are now the same DID, `edge_houbun_amends` degenerates to a self-loop.
 
@@ -57,7 +57,7 @@ the defect is confined to the fallback, which is what runs otherwise.
 statute AT-URI that `ingest.ts` computed from the statute write receipt. Stored
 value is `at://第一条` against a real value of
 `at://did:web:houbun.etzhayyim.com/com.etzhayyim.houbun.statute/statute-jpn-129ac0000000089`.
-The `edge_houbun_statute_article` edge documented in `CLAUDE.md` cannot be built.
+The `edge_houbun_statute_article` edge documented in `AGENTS.md` cannot be built.
 
 `ArticleRecord` declares `language`, `amendedAt`, `sourceUrl` and `section`;
 `ingest.ts` passes all four; `registerArticle` writes none of them.
@@ -85,12 +85,12 @@ This is a missing record, not a missing zone.
 - `kotoba/README.md` opens with "Coverage: **12 of 12 (100%) canonical**" and
   its own sibling table records houbun as "8/8 (records), active (4 ingest procs
   pending)".
-- `CLAUDE.md` states "**No dedicated Worker**. PDS XRPC → UDF pool RPC 1 hop"
+- `AGENTS.md` states "**No dedicated Worker**. PDS XRPC → UDF pool RPC 1 hop"
   and places the runtime in a Python handler in another repo, while
   `xrpc-adapter/wrangler.jsonc` defines a dedicated Worker with a route.
-- The `CLAUDE.md` smoke test posts to `atproto.etzhayyim.com/xrpc/...`; the
+- The `AGENTS.md` smoke test posts to `atproto.etzhayyim.com/xrpc/...`; the
   worker is routed at `houbun.etzhayyim.com/xrpc/*`.
-- `CLAUDE.md` names the UN procedure `ingestUnTreaty`; the code exports
+- `AGENTS.md` names the UN procedure `ingestUnTreaty`; the code exports
   `ingestTreatyUn`, and `kotodama.jsonld` dispatches `ingestTreatyUn`.
 
 ## Decision
@@ -120,7 +120,7 @@ convert an ambiguity into a silent commitment.
    faces against one suggests the worker is wrong, but the worker is the only
    one that has ever served traffic, so this is not decidable from counts.
 
-2. **Where does houbun actually run** — the Python UDF pool that `CLAUDE.md`
+2. **Where does houbun actually run** — the Python UDF pool that `AGENTS.md`
    describes, or the Cloudflare Worker that exists in the tree? These are not
    compatible; one of the two documents a system that is not there.
 

@@ -8,7 +8,7 @@ should resolve to one provision, and amending that provision should mint a new
 identity while the old one stays resolvable. Statute and treaty records
 aggregate; `amendmentEvent` records carry lineage between article versions.
 
-Boundaries against the neighbouring actors (from `CLAUDE.md`): contract *types*
+Boundaries against the neighbouring actors (from `AGENTS.md`): contract *types*
 live at `social-contract.etzhayyim.com`, organisation records at
 `contracts.etzhayyim.com`, the company registry at `legal-entity.etzhayyim.com`,
 and legal *services* at `bengoshi` / `lawfirm` / `legal-aid` / `sashiosae`.
@@ -16,7 +16,7 @@ houbun holds the law's full text, and nothing else.
 
 ## Read this before trusting anything else in the repo
 
-This repository describes itself in six places — `CLAUDE.md`,
+This repository describes itself in six places — `AGENTS.md`,
 `kotodama.jsonld`, `PROJECT.jsonld`, `kotoba/README.md`,
 `xrpc-adapter/README.md`, and the TypeScript under `kotoba/src` — **and they do
 not agree with each other.** The vitest suite is green (10/10), so nothing in

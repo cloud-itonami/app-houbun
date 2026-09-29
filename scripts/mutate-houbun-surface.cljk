@@ -89,15 +89,15 @@
     "4 ingest procs pending" "4 ingest procs complete"
     #{"kotoba-readme-self-contradiction"}]
 
-   ["claude-md-denies-the-worker" "CLAUDE.md"
+   ["claude-md-denies-the-worker" "AGENTS.md"
     "**No dedicated Worker**" "Dedicated Worker"
     #{"claude-md-denies-the-worker"}]
 
-   ["claude-md-smoke-wrong-host" "CLAUDE.md"
+   ["claude-md-smoke-wrong-host" "AGENTS.md"
     "atproto.etzhayyim.com/xrpc/" "houbun.etzhayyim.com/xrpc/"
     #{"claude-md-smoke-wrong-host"}]
 
-   ["un-treaty-proc-name-split" "CLAUDE.md"
+   ["un-treaty-proc-name-split" "AGENTS.md"
     "ingestUnTreaty" "ingestTreatyUn"
     #{"un-treaty-proc-name-split"}]
 

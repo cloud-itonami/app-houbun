@@ -131,7 +131,7 @@ npx vite-node probe/content-addressing.ts
 ```
 
 This asserts nothing and always exits 0. It prints what the code does so you can
-compare it against `kotoba/README.md` and `CLAUDE.md`:
+compare it against `kotoba/README.md` and `AGENTS.md`:
 
 ```
 === A. two different statutes, each with 第一条 ===

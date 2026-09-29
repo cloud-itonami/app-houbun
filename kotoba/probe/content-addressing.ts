@@ -6,7 +6,7 @@
  *
  * This is a probe, not a test. It asserts nothing and always exits 0; its
  * job is to print what the code does so a reader can compare that against
- * what kotoba/README.md and CLAUDE.md claim it does. The vitest suite is
+ * what kotoba/README.md and AGENTS.md claim it does. The vitest suite is
  * green and does not exercise this path — see
  * docs/adr/0001-houbun-surface-discrepancies.md.
  */
