@@ -5,11 +5,11 @@
 ;;
 ;; <dir> MUST be the first argument (the fleet passes it that way, and several
 ;; gates in this workspace have been misdiagnosed because a flag was read as
-;; the tree path — CLAUDE.md, 2026-08-10).
+;; the tree path — AGENTS.md, 2026-08-10).
 ;;
 ;; WHAT THIS IS FOR
 ;; ----------------
-;; houbun describes itself in six places — CLAUDE.md, kotodama.jsonld,
+;; houbun describes itself in six places — AGENTS.md, kotodama.jsonld,
 ;; PROJECT.jsonld, kotoba/README.md, xrpc-adapter/README.md, and the code.
 ;; They do not agree with each other, and the vitest suite is green, so
 ;; nothing in the repo currently notices. This script asserts the CURRENT
@@ -76,7 +76,7 @@
 (def wrangler     (slurp* "xrpc-adapter/wrangler.jsonc"))
 (def adapter-doc  (slurp* "xrpc-adapter/README.md"))
 (def kotodama     (slurp* "kotodama.jsonld"))
-(def claude-md    (slurp* "CLAUDE.md"))
+(def claude-md    (slurp* "AGENTS.md"))
 (def kotoba-doc   (slurp* "kotoba/README.md"))
 (def corpus-ts    (slurp* "kotoba/src/corpus.ts"))
 (def types-ts     (slurp* "kotoba/src/types.ts"))
@@ -166,7 +166,7 @@
         "blake3Prefix12Fallback still declares (jurisdiction, statuteId, articleNo, amendedAt)"
         #(re-find #"blake3Prefix12Fallback\(\s*\n\s*jurisdiction: string,\s*\n\s*statuteId: string,\s*\n\s*articleNo: string,\s*\n\s*amendedAt: string \| undefined,?\s*\n\s*\)" types-ts))
 
-(check! "docs-claim-content-addressing" ["kotoba/README.md" "CLAUDE.md"]
+(check! "docs-claim-content-addressing" ["kotoba/README.md" "AGENTS.md"]
         "both docs still claim each amendment produces a new article DID"
         #(and (re-find #"each amendment produces a \*\*new article DID\*\*" kotoba-doc)
               (re-find #"改正で新 DID が生える" claude-md)))
@@ -200,18 +200,18 @@
         #(and (re-find #"(?i)Coverage:\s*\*\*12 of 12 \(100%\) canonical\*\*" kotoba-doc)
               (re-find #"(?i)4 ingest procs pending" kotoba-doc)))
 
-(check! "claude-md-denies-the-worker" ["CLAUDE.md" "xrpc-adapter/wrangler.jsonc"]
-        "CLAUDE.md says 'No dedicated Worker' while wrangler.jsonc defines one with a route"
+(check! "claude-md-denies-the-worker" ["AGENTS.md" "xrpc-adapter/wrangler.jsonc"]
+        "AGENTS.md says 'No dedicated Worker' while wrangler.jsonc defines one with a route"
         #(and (re-find #"(?i)\*\*No dedicated Worker\*\*" claude-md)
               (re-find #"\"routes\"\s*:\s*\[\s*\{\s*\"pattern\"" wrangler)))
 
-(check! "claude-md-smoke-wrong-host" ["CLAUDE.md" "xrpc-adapter/wrangler.jsonc"]
-        "the CLAUDE.md smoke curl targets a different host than the worker route"
+(check! "claude-md-smoke-wrong-host" ["AGENTS.md" "xrpc-adapter/wrangler.jsonc"]
+        "the AGENTS.md smoke curl targets a different host than the worker route"
         #(and (str/includes? claude-md "atproto.etzhayyim.com/xrpc/")
               (str/includes? wrangler "houbun.etzhayyim.com/xrpc/*")))
 
-(check! "un-treaty-proc-name-split" ["CLAUDE.md" "kotoba/src/ingest.ts"]
-        "CLAUDE.md calls it ingestUnTreaty; the code exports ingestTreatyUn"
+(check! "un-treaty-proc-name-split" ["AGENTS.md" "kotoba/src/ingest.ts"]
+        "AGENTS.md calls it ingestUnTreaty; the code exports ingestTreatyUn"
         #(and (str/includes? claude-md "ingestUnTreaty")
               (str/includes? ingest-ts "export async function ingestTreatyUn")
               (not (str/includes? ingest-ts "ingestUnTreaty"))))
